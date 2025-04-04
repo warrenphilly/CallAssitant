@@ -1,103 +1,281 @@
-import Image from "next/image";
+"use client"; // Required for state and event handlers
+
+// import AgentsTable from "@/components/AgentsTable"; // No longer used directly here
+import AgentDetailSidebar from "@/components/AgentDetailSidebar"; // Verify path
+import AllCallsView from "@/components/AllCallsView"; // Import AllCallsView
+import DashboardView from "@/components/DashboardView"; // Import DashboardView
+import NavigationSidebar from "@/components/NavigationSidebar"; // Import new sidebar
+import { CallWithAgentDetails } from "@/components/RecentCallsTable"; // Keep type import needed for data processing
+import Sidebar from "@/components/Sidebar"; // Import the Sidebar component
+import { AgentData, mockAgents } from "@/data/mockAgents"; // Import AgentData type
+import { mockCalls } from "@/data/mockCalls";
+import { formatDurationMMSS } from "@/utils/formatters"; // Import from utils
+import React, { useMemo, useState } from "react"; // Import useState, useMemo
+
+// Helper to format total seconds into Hh Mm Ss
+const formatTotalDuration = (totalSeconds: number): string => {
+  if (totalSeconds === 0) return "0s";
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const parts: string[] = [];
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+  return parts.join(" ");
+};
+
+// Helper function to get qualitative overall satisfaction
+const getQualitativeSatisfaction = (
+  positivePercent: number,
+  negativePercent: number
+): string => {
+  if (negativePercent > 50) return "Very Negative";
+  if (negativePercent > 30) return "Negative";
+  if (positivePercent >= 80) return "Very Positive";
+  if (positivePercent >= 60) return "Positive";
+  // Default to Neutral if none of the above conditions are met
+  return "Neutral";
+};
+
+// Define AgentStats here if not imported from a shared location
+interface AgentStats {
+  totalCalls: number;
+  positive: number;
+  neutral: number;
+  negative: number;
+  overallReview: string;
+}
+
+// Helper Functions needed in this component
+const calculatePercentage = (count: number, total: number): number => {
+  if (total === 0) return 0;
+  return Math.round((count / total) * 100);
+};
+
+const getOverallReview = (stats: Omit<AgentStats, "overallReview">): string => {
+  if (stats.totalCalls === 0) return "N/A";
+  const positivePercent = calculatePercentage(stats.positive, stats.totalCalls);
+  const negativePercent = calculatePercentage(stats.negative, stats.totalCalls);
+
+  if (positivePercent >= 75 && negativePercent <= 10) return "Excellent";
+  if (positivePercent >= 50 && negativePercent <= 25) return "Good";
+  return "Needs Improvement";
+};
+
+const getReviewBadgeClass = (review: string): string => {
+  switch (review) {
+    case "Excellent":
+      return "bg-green-200 text-green-900 dark:bg-green-700 dark:text-green-100";
+    case "Good":
+      return "bg-blue-200 text-blue-900 dark:bg-purple-700 dark:text-purple-100";
+    case "Needs Improvement":
+      return "bg-yellow-200 text-yellow-900 dark:bg-yellow-700 dark:text-yellow-100";
+    default:
+      return "bg-gray-200 text-gray-800 dark:bg-navy-600 dark:text-navy-100";
+  }
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedAgent, setSelectedAgent] = useState<AgentData | null>(null);
+  const [currentView, setCurrentView] = useState<"dashboard" | "allCalls">(
+    "dashboard"
+  ); // Add view state
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+    // Close agent details if main sidebar is closed on mobile
+    if (window.innerWidth < 1024 && isSidebarOpen) {
+      setSelectedAgent(null);
+    }
+  };
+
+  const handleSelectAgent = (agent: AgentData) => {
+    setSelectedAgent(agent);
+    // Optionally open the main sidebar if closed on mobile
+    if (!isSidebarOpen && window.innerWidth < 1024) {
+      setIsSidebarOpen(true);
+    }
+  };
+
+  const handleCloseAgentDetail = () => {
+    setSelectedAgent(null);
+  };
+
+  const handleSetView = (view: "dashboard" | "allCalls") => {
+    setCurrentView(view);
+  };
+
+  // Calculate stats for the *selected* agent
+  const selectedAgentStats = useMemo(() => {
+    if (!selectedAgent) return null;
+
+    const agentCalls = mockCalls.filter(
+      (call) => call.agentId === selectedAgent.id
+    );
+    const stats: Omit<AgentStats, "overallReview"> = {
+      totalCalls: agentCalls.length,
+      positive: agentCalls.filter(
+        (c) =>
+          c.satisfaction === "Positive" || c.satisfaction === "Very Positive"
+      ).length,
+      neutral: agentCalls.filter((c) => c.satisfaction === "Neutral").length,
+      negative: agentCalls.filter(
+        (c) =>
+          c.satisfaction === "Negative" || c.satisfaction === "Very Negative"
+      ).length,
+    };
+
+    return {
+      ...stats,
+      overallReview: getOverallReview(stats),
+    };
+  }, [selectedAgent]); // Removed mockCalls dependency as it's stable
+
+  // --- Combine Call and Agent Data ---
+  const agentsMap = useMemo(() => {
+    const map = new Map<string, AgentData>();
+    mockAgents.forEach((agent) => map.set(agent.id, agent));
+    return map;
+  }, [mockAgents]);
+
+  // Add agent details and a mock review to each call
+  const callsWithAgentDetails: CallWithAgentDetails[] = useMemo(() => {
+    return mockCalls
+      .map((call) => {
+        const agent = agentsMap.get(call.agentId);
+        // Add explicit check although ?? handles it
+        const agentName = agent ? agent.name : "Unknown Agent";
+        const agentPhoneNumber = agent ? agent.phoneNumber : "N/A";
+        const mockReview = agent
+          ? agent.id.charCodeAt(0) % 3 === 0
+            ? "Good"
+            : agent.id.charCodeAt(0) % 3 === 1
+            ? "Excellent"
+            : "Needs Improvement"
+          : "N/A";
+
+        return {
+          ...call,
+          agentName: agentName,
+          agentPhoneNumber: agentPhoneNumber,
+          agentReview: mockReview,
+        };
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [mockCalls, agentsMap]);
+
+  // --- Reverted Calculations (using mockCalls directly) ---
+  const totalCalls = mockCalls.length;
+  const totalDurationSeconds = mockCalls.reduce(
+    (sum, call) => sum + call.durationSeconds,
+    0
+  );
+  const averageDurationSeconds =
+    totalCalls > 0 ? totalDurationSeconds / totalCalls : 0;
+  const positiveCalls = mockCalls.filter(
+    (call) =>
+      call.satisfaction === "Positive" || call.satisfaction === "Very Positive"
+  ).length;
+  const negativeCalls = mockCalls.filter(
+    (call) =>
+      call.satisfaction === "Negative" || call.satisfaction === "Very Negative"
+  ).length;
+  const positivePercent =
+    totalCalls > 0 ? Math.round((positiveCalls / totalCalls) * 100) : 0;
+  const negativePercent =
+    totalCalls > 0 ? Math.round((negativeCalls / totalCalls) * 100) : 0;
+  const qualitativeSatisfaction = getQualitativeSatisfaction(
+    positivePercent,
+    negativePercent
+  );
+  const formattedAverageDuration = formatDurationMMSS(averageDurationSeconds);
+  const formattedTotalDuration = formatTotalDuration(totalDurationSeconds);
+
+  // Chart Data based on mockCalls
+  const callsByDate = mockCalls.reduce((acc, call) => {
+    const date = call.date;
+    acc[date] = (acc[date] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const callsChartData = Object.entries(callsByDate)
+    .map(([date, calls]) => ({ date, calls }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  return (
+    // Reverted main layout
+    <main className="flex flex-col lg:flex-row-reverse min-h-screen bg-white">
+      {/* Navigation Sidebar (Fixed Left, Centered) */}
+      <NavigationSidebar currentView={currentView} onSetView={handleSetView} />
+
+      {/* Existing Sidebars Wrapper (Right side, handling lg:flex-row-reverse) */}
+      {/* This structure might need rethinking based on desired behavior */}
+      {/* If AgentDetail should push AgentList or overlay depends on implementation */}
+      <div className="flex lg:flex-row-reverse flex-shrink-0">
+        <Sidebar
+          isOpen={isSidebarOpen} // Controls visibility on mobile
+          toggleSidebar={toggleSidebar} // Needed for mobile close button
+          agents={mockAgents}
+          callData={mockCalls}
+          onAgentSelect={handleSelectAgent}
+        />
+        <AgentDetailSidebar
+          agent={selectedAgent}
+          agentStats={selectedAgentStats}
+          onClose={handleCloseAgentDetail}
+          getReviewBadgeClass={getReviewBadgeClass}
+          calculatePercentage={calculatePercentage}
+        />
+      </div>
+
+      {/* Main Content Wrapper - Restore left padding */}
+      <div className="flex flex-col flex-1 p-8 sm:p-12 overflow-y-auto pl-28">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex pl-16  w-full items-center justify-center"> <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            {currentView === "dashboard" ? "Dashboard" : "All Calls"}
+          </h1></div>
+         
+          <button
+            onClick={toggleSidebar}
+            className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none lg:hidden"
+            aria-label="Open sidebar"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="h-6 w-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+              />
+            </svg>
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        {/* Conditionally Render View Components */}
+         <div className="pl-16">
+        {currentView === "dashboard" ? (
+         
+          <DashboardView
+            totalCalls={totalCalls}
+            averageDuration={formattedAverageDuration}
+            totalDuration={formattedTotalDuration}
+            overallSatisfaction={qualitativeSatisfaction}
+            callsChartData={callsChartData}
+            recentCalls={callsWithAgentDetails.slice(0, 4)}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        ) : (
+          <AllCallsView allCalls={callsWithAgentDetails} />
+          )}
+          </div>
+      </div>
+    </main>
   );
 }
