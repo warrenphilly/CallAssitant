@@ -20,7 +20,7 @@ export default function CallsPerDayChart({ data }: CallsPerDayChartProps) {
           Calls per Day
         </h3>
         <div className="flex-grow flex items-center justify-center">
-          <p className="text-center text-gray-500 ">
+          <p className="text-center text-gray-500">
             No call data available for this period.
           </p>
         </div>

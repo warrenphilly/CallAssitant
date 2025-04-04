@@ -9,34 +9,7 @@ import { CallWithAgentDetails } from "@/components/RecentCallsTable"; // Keep ty
 import Sidebar from "@/components/Sidebar"; // Import the Sidebar component
 import { AgentData, mockAgents } from "@/data/mockAgents"; // Import AgentData type
 import { mockCalls } from "@/data/mockCalls";
-import { formatDurationMMSS } from "@/utils/formatters"; // Import from utils
 import React, { useMemo, useState } from "react"; // Import useState, useMemo
-
-// Helper to format total seconds into Hh Mm Ss
-const formatTotalDuration = (totalSeconds: number): string => {
-  if (totalSeconds === 0) return "0s";
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  const parts: string[] = [];
-  if (hours > 0) parts.push(`${hours}h`);
-  if (minutes > 0) parts.push(`${minutes}m`);
-  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
-  return parts.join(" ");
-};
-
-// Helper function to get qualitative overall satisfaction
-const getQualitativeSatisfaction = (
-  positivePercent: number,
-  negativePercent: number
-): string => {
-  if (negativePercent > 50) return "Very Negative";
-  if (negativePercent > 30) return "Negative";
-  if (positivePercent >= 80) return "Very Positive";
-  if (positivePercent >= 60) return "Positive";
-  // Default to Neutral if none of the above conditions are met
-  return "Neutral";
-};
 
 // Define AgentStats here if not imported from a shared location
 interface AgentStats {
@@ -166,34 +139,7 @@ export default function Home() {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [mockCalls, agentsMap]);
 
-  // --- Reverted Calculations (using mockCalls directly) ---
-  const totalCalls = mockCalls.length;
-  const totalDurationSeconds = mockCalls.reduce(
-    (sum, call) => sum + call.durationSeconds,
-    0
-  );
-  const averageDurationSeconds =
-    totalCalls > 0 ? totalDurationSeconds / totalCalls : 0;
-  const positiveCalls = mockCalls.filter(
-    (call) =>
-      call.satisfaction === "Positive" || call.satisfaction === "Very Positive"
-  ).length;
-  const negativeCalls = mockCalls.filter(
-    (call) =>
-      call.satisfaction === "Negative" || call.satisfaction === "Very Negative"
-  ).length;
-  const positivePercent =
-    totalCalls > 0 ? Math.round((positiveCalls / totalCalls) * 100) : 0;
-  const negativePercent =
-    totalCalls > 0 ? Math.round((negativeCalls / totalCalls) * 100) : 0;
-  const qualitativeSatisfaction = getQualitativeSatisfaction(
-    positivePercent,
-    negativePercent
-  );
-  const formattedAverageDuration = formatDurationMMSS(averageDurationSeconds);
-  const formattedTotalDuration = formatTotalDuration(totalDurationSeconds);
-
-  // Chart Data based on mockCalls
+  // Keep callsByDate calculation (unfiltered)
   const callsByDate = mockCalls.reduce((acc, call) => {
     const date = call.date;
     acc[date] = (acc[date] || 0) + 1;
@@ -233,10 +179,13 @@ export default function Home() {
       <div className="flex flex-col flex-1 p-8 sm:p-12 overflow-y-auto pl-28">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex pl-16  w-full items-center justify-center"> <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-            {currentView === "dashboard" ? "Dashboard" : "All Calls"}
-          </h1></div>
-         
+          <div className="flex pl-16  w-full items-center justify-center">
+            {" "}
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+              {currentView === "dashboard" ? "Dashboard" : "All Calls"}
+            </h1>
+          </div>
+
           <button
             onClick={toggleSidebar}
             className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none lg:hidden"
@@ -260,21 +209,16 @@ export default function Home() {
         </div>
 
         {/* Conditionally Render View Components */}
-         <div className="pl-16">
-        {currentView === "dashboard" ? (
-         
-          <DashboardView
-            totalCalls={totalCalls}
-            averageDuration={formattedAverageDuration}
-            totalDuration={formattedTotalDuration}
-            overallSatisfaction={qualitativeSatisfaction}
-            callsChartData={callsChartData}
-            recentCalls={callsWithAgentDetails.slice(0, 4)}
-          />
-        ) : (
-          <AllCallsView allCalls={callsWithAgentDetails} />
+        <div className="pl-16">
+          {currentView === "dashboard" ? (
+            <DashboardView
+              callsChartData={callsChartData}
+              allCallsWithAgentDetails={callsWithAgentDetails}
+            />
+          ) : (
+            <AllCallsView allCalls={callsWithAgentDetails} />
           )}
-          </div>
+        </div>
       </div>
     </main>
   );
