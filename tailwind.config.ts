@@ -10,6 +10,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        background: {
+          primary: "#191D22",
+          secondary: "#5C5F64",
+          tertiary: "##45484D",
+        },
+        primary: {
+          100: "#5e94de",
+          200: "#75a1e2",
+          300: "#8baee6",
+          400: "#a0bbeb",
+          500: "#b3c8ef",
+        },
         // Define Navy shades (adjust as needed)
         navy: {
           50: "#E6EBF5",

@@ -49,7 +49,7 @@ export default function RecentCallsList({ calls }: RecentCallsProps) {
               key={call.id}
               // Add onClick handler if navigation/modal opening is desired
               // onClick={() => alert(`Show details for ${call.id}`)}
-              className="flex items-start p-4 bg-white rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-default shadow border border-gray-200 space-x-3"
+              className="flex items-start p-4 border-2 border-[#333B48] rounded-lg bg-none hover:bg-[#333B48]  transition-colors duration-150 cursor-default shadow space-x-3"
               title={`Call from ${call.callerNumber} handled by ${call.agentName}`}
             >
               {/* Icon */}
@@ -60,16 +60,17 @@ export default function RecentCallsList({ calls }: RecentCallsProps) {
               {/* Details Column */}
               <div className="flex-grow min-w-0">
                 <p
-                  className="text-sm font-semibold text-gray-800 truncate"
+                  className="text-sm text-[#8BAEE5] font-semibold truncate"
                   title={call.agentName}
                 >
-                  Agent: {call.agentName}
+                  Caller: {call.callerNumber}
+                 
                 </p>
                 <p
                   className="text-xs text-gray-500 truncate"
                   title={call.callerNumber}
                 >
-                  Caller: {call.callerNumber}
+                   Agent: {call.agentName}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   Duration: {formatDurationMMSS(call.durationSeconds)}

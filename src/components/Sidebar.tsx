@@ -1,9 +1,9 @@
 "use client";
 
-import AgentsTable from "@/components/AgentsTable"; // Assuming AgentsTable path
-import type { AgentData } from "@/data/mockAgents"; // Use correct type
-import type { CallData } from "@/data/mockCalls";
 import React from "react";
+import { FaSearch, FaUserCircle } from "react-icons/fa"; // Or appropriate icons
+import { AgentData } from "@/data/mockAgents";
+import type { CallData } from "@/data/mockCalls";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -50,11 +50,7 @@ export default function Sidebar({
         </button>
       </div>
       <div className="flex-grow overflow-y-auto">
-        <AgentsTable
-          agents={agents}
-          callData={callData}
-          onAgentSelect={onAgentSelect}
-        />
+        {/* AgentsTable component is removed as per the instructions */}
       </div>
     </div>
   );

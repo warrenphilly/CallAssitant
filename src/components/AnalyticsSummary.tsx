@@ -13,9 +13,9 @@ const StatCard = ({
   title: string;
   value: string | number;
 }) => (
-  <div className="bg-slate-50 shadow rounded-lg p-4 text-center flex flex-col justify-center min-h-[130px]  border border-gray-200">
-    <dt className="text-sm font-medium text-gray-500 truncate mb-1">{title}</dt>
-    <dd className="text-2xl font-semibold text-gray-800">{value}</dd>
+  <div className="bg-[#333B48] shadow rounded-xl p-4 text-center flex flex-col justify-center min-h-[137px] ">
+    <dt className="text-sm font-medium text-white truncate mb-1">{title}</dt>
+    <dd className="text-2xl font-semibold text-[#8BAEE5]">{value}</dd>
   </div>
 );
 

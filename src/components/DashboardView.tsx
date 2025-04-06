@@ -257,46 +257,47 @@ export default function DashboardView({
   const getButtonClass = (mode: typeof filterMode) => {
     return `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
       filterMode === mode
-        ? "bg-indigo-600 text-white"
-        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+        ? "bg-[#74A1E2] text-white"
+        : "bg-[#4B515C] text-white hover:bg-gray-300"
     }`;
   };
 
   return (
     <div>
       {/* --- Filter Controls --- */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4 bg-white rounded-lg shadow border border-gray-200">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 p-4 bg-[#1F2734] rounded-lg shadow ">
         {/* Mode Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-gray-700 mr-2">
+          <span className="text-sm font-medium text-white mr-2">
             Filter By:
           </span>
           <button
-            className={getButtonClass("all")}
+            className={`${getButtonClass("all")} bg-[#333B48]`}
             onClick={() => setFilterMode("all")}
           >
             All
           </button>
           <button
-            className={getButtonClass("year")}
+            className={`${getButtonClass("year")} bg-[#4B515C]`}
             onClick={() => setFilterMode("year")}
           >
             Year
           </button>
           <button
-            className={getButtonClass("month")}
+            className={`${getButtonClass("month")} bg-[#4B515C]`}
+
             onClick={() => setFilterMode("month")}
           >
             Month
           </button>
           <button
-            className={getButtonClass("week")}
+            className={`${getButtonClass("week")} bg-[#4B515C]`}
             onClick={() => setFilterMode("week")}
           >
             Week
           </button>
           <button
-            className={getButtonClass("day")}
+            className={`${getButtonClass("day")} bg-[#4B515C]`}
             onClick={() => setFilterMode("day")}
           >
             Day
@@ -312,7 +313,7 @@ export default function DashboardView({
           <button
             onClick={handlePrevious}
             disabled={filterMode === "all"}
-            className="p-2 rounded-md text-gray-600 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+            className="p-2 rounded-full text-[#74A1E2] bg-[#4B515C] hover:bg-gray-200 disabled:opacity-50"
             aria-label="Previous Period"
           >
             {/* SVG for Previous */}
@@ -332,14 +333,14 @@ export default function DashboardView({
             </svg>
           </button>
 
-          <span className="text-center font-medium text-gray-800 min-w-[180px]">
+          <span className="text-center font-medium text-[#74A1E2] min-w-[180px]">
             {formatDateForDisplay(selectedDateString, filterMode)}
           </span>
 
           <button
             onClick={handleNext}
             disabled={filterMode === "all"}
-            className="p-2 rounded-md text-gray-600 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+            className="p-2 rounded-full text-[#74A1E2] bg-[#4B515C] hover:bg-gray-200 disabled:opacity-50"
             aria-label="Next Period"
           >
             {/* SVG for Next */}
@@ -376,15 +377,15 @@ export default function DashboardView({
         </div>
 
         {/* Charts Column - Pass filtered chart data */}
-        <div className="grid grid-cols-1 gap-6 bg-white rounded-xl shadow p-4 sm:p-6">
+       
           <CallsPerDayChart data={filteredChartData} />
-        </div>
+        
       </div>
 
       {/* Recent Calls Section - Pass filtered calls */}
-      <div className="mb-8 bg-white rounded-xl shadow flex flex-col items-stretch p-4 h-[calc(50vh)]">
+      <div className="mb-8 bg-[#1F2734] rounded-xl shadow flex flex-col items-stretch p-4 h-[calc(50vh)]">
         <div className="flex justify-between items-center mb-4 px-2 flex-shrink-0">
-          <h2 className="text-xl font-semibold text-gray-700">
+          <h2 className="text-xl font-semibold text-white">
             {filterMode === "all"
               ? "Recent Calls"
               : `Calls for ${formatDateForDisplay(

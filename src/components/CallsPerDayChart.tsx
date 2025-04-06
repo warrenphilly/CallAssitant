@@ -15,8 +15,8 @@ interface CallsPerDayChartProps {
 export default function CallsPerDayChart({ data }: CallsPerDayChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white shadow-lg rounded-xl p-4 sm:p-6 h-80 border border-gray-200 flex flex-col">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4 flex-shrink-0">
+      <div className="bg-[#333B48] shadow-lg rounded-xl p-4 sm:p-6 h-80  flex flex-col">
+        <h3 className="text-lg font-semibold text-gray-700 mb-4 flex-shrink-0 text-white">
           Calls per Day
         </h3>
         <div className="flex-grow flex items-center justify-center">
@@ -29,8 +29,8 @@ export default function CallsPerDayChart({ data }: CallsPerDayChartProps) {
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-xl p-4 sm:p-6 h-80 border border-gray-200 flex flex-col">
-      <h3 className="text-lg font-semibold text-gray-700 mb-4 flex-shrink-0">
+    <div className="bg-[#333B48] shadow-lg rounded-xl p-4 sm:p-6 h-80  flex flex-col">
+      <h3 className="text-lg font-semibold text-gray-700 mb-4 flex-shrink-0 text-white">
         Calls per Day
       </h3>
       <div className="flex-grow">

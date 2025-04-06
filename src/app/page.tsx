@@ -1,15 +1,14 @@
 "use client"; // Required for state and event handlers
 
-// import AgentsTable from "@/components/AgentsTable"; // No longer used directly here
 import AgentDetailSidebar from "@/components/AgentDetailSidebar"; // Verify path
 import AllCallsView from "@/components/AllCallsView"; // Import AllCallsView
 import DashboardView from "@/components/DashboardView"; // Import DashboardView
 import NavigationSidebar from "@/components/NavigationSidebar"; // Import new sidebar
 import { CallWithAgentDetails } from "@/components/RecentCallsTable"; // Keep type import needed for data processing
-import Sidebar from "@/components/Sidebar"; // Import the Sidebar component
 import { AgentData, mockAgents } from "@/data/mockAgents"; // Import AgentData type
 import { mockCalls } from "@/data/mockCalls";
 import React, { useMemo, useState } from "react"; // Import useState, useMemo
+import AgentsListView from "@/components/AgentsListView"; // Import the new view
 
 // Define AgentStats here if not imported from a shared location
 interface AgentStats {
@@ -52,9 +51,9 @@ const getReviewBadgeClass = (review: string): string => {
 export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedAgent, setSelectedAgent] = useState<AgentData | null>(null);
-  const [currentView, setCurrentView] = useState<"dashboard" | "allCalls">(
-    "dashboard"
-  ); // Add view state
+  const [currentView, setCurrentView] = useState<
+    "dashboard" | "allCalls" | "agents"
+  >("dashboard");
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -76,7 +75,7 @@ export default function Home() {
     setSelectedAgent(null);
   };
 
-  const handleSetView = (view: "dashboard" | "allCalls") => {
+  const handleSetView = (view: "dashboard" | "allCalls" | "agents") => {
     setCurrentView(view);
   };
 
@@ -150,47 +149,33 @@ export default function Home() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
-    // Reverted main layout
-    <main className="flex flex-col lg:flex-row-reverse min-h-screen bg-white">
+    // Adjust main layout: remove lg:flex-row-reverse
+    <main className="flex flex-col lg:flex-row min-h-screen bg-white">
       {/* Navigation Sidebar (Fixed Left, Centered) */}
       <NavigationSidebar currentView={currentView} onSetView={handleSetView} />
 
-      {/* Existing Sidebars Wrapper (Right side, handling lg:flex-row-reverse) */}
-      {/* This structure might need rethinking based on desired behavior */}
-      {/* If AgentDetail should push AgentList or overlay depends on implementation */}
-      <div className="flex lg:flex-row-reverse flex-shrink-0">
-        <Sidebar
-          isOpen={isSidebarOpen} // Controls visibility on mobile
-          toggleSidebar={toggleSidebar} // Needed for mobile close button
-          agents={mockAgents}
-          callData={mockCalls}
-          onAgentSelect={handleSelectAgent}
-        />
-        <AgentDetailSidebar
-          agent={selectedAgent}
-          agentStats={selectedAgentStats}
-          onClose={handleCloseAgentDetail}
-          getReviewBadgeClass={getReviewBadgeClass}
-          calculatePercentage={calculatePercentage}
-        />
-      </div>
-
-      {/* Main Content Wrapper - Restore left padding */}
-      <div className="flex flex-col flex-1 p-8 sm:p-12 overflow-y-auto pl-28">
+      {/* Main Content Wrapper - Takes up remaining space */}
+      <div className="flex flex-col flex-1 p-8 sm:p-12 overflow-y-auto pl-28 bg-[#1F2734]">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex pl-16  w-full items-center justify-center">
+          <div className="flex pl-16 w-full items-center justify-center">
             {" "}
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-              {currentView === "dashboard" ? "Dashboard" : "All Calls"}
+              {currentView === "dashboard"
+                ? "Dashboard"
+                : currentView === "allCalls"
+                ? "All Calls"
+                : "Agents"}
             </h1>
           </div>
 
+          {/* Mobile toggle button remains */}
           <button
-            onClick={toggleSidebar}
+            onClick={toggleSidebar} // This toggle function might need adjustment if it was tied only to the old Sidebar
             className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none lg:hidden"
-            aria-label="Open sidebar"
+            aria-label="Open sidebar" // Consider renaming aria-label if toggle function changes
           >
+            {/* SVG remains */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -215,11 +200,25 @@ export default function Home() {
               callsChartData={callsChartData}
               allCallsWithAgentDetails={callsWithAgentDetails}
             />
-          ) : (
+          ) : currentView === "allCalls" ? (
             <AllCallsView allCalls={callsWithAgentDetails} />
+          ) : (
+            <AgentsListView
+              agents={mockAgents}
+              onAgentSelect={handleSelectAgent}
+            />
           )}
         </div>
       </div>
+
+      {/* Agent Detail Sidebar - Now directly inside main, should position itself */}
+      <AgentDetailSidebar
+        agent={selectedAgent}
+        agentStats={selectedAgentStats}
+        onClose={handleCloseAgentDetail}
+        getReviewBadgeClass={getReviewBadgeClass}
+        calculatePercentage={calculatePercentage}
+      />
     </main>
   );
 }

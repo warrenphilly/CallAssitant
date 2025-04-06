@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { FaListUl, FaThLarge } from "react-icons/fa"; // Example icons
+import { FaListUl, FaThLarge, FaUsers } from "react-icons/fa"; // Example icons
 
-type View = "dashboard" | "allCalls";
+type View = "dashboard" | "allCalls" | "agents";
 
 interface NavigationSidebarProps {
   currentView: View;
@@ -17,11 +17,12 @@ export default function NavigationSidebar({
   const navItems = [
     { view: "dashboard" as View, label: "Dashboard", icon: FaThLarge },
     { view: "allCalls" as View, label: "All Calls", icon: FaListUl },
+    { view: "agents" as View, label: "Agents", icon: FaUsers },
   ];
 
   return (
     // Reverted to fixed positioning, 70vh height, vertical centering, rounding, shadow
-    <nav className="fixed left-4 top-1/2 -translate-y-1/2 z-40 w-20 h-[70vh] bg-gray-800 text-white flex flex-col items-center justify-center py-6 space-y-6 rounded-xl shadow-lg">
+    <nav className="fixed left-4 top-1/2 -translate-y-1/2 z-40 w-20 h-[70vh] bg-[#333B48] text-white flex flex-col items-center justify-center py-6 space-y-6 rounded-xl shadow-lg">
       {/* Added justify-center back */}
 
       {/* Optional: Logo placeholder */}
