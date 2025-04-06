@@ -3,7 +3,7 @@
 import AgentDetailSidebar from "@/components/AgentDetailSidebar"; // Verify path
 import AllCallsView from "@/components/AllCallsView"; // Import AllCallsView
 import DashboardView from "@/components/DashboardView"; // Import DashboardView
-import NavigationSidebar from "@/components/NavigationSidebar"; // Import new sidebar
+import TopBar from "@/components/TopBar"; // Import the new TopBar
 import { CallWithAgentDetails } from "@/components/RecentCallsTable"; // Keep type import needed for data processing
 import { AgentData, mockAgents } from "@/data/mockAgents"; // Import AgentData type
 import { mockCalls } from "@/data/mockCalls";
@@ -49,26 +49,13 @@ const getReviewBadgeClass = (review: string): string => {
 };
 
 export default function Home() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedAgent, setSelectedAgent] = useState<AgentData | null>(null);
   const [currentView, setCurrentView] = useState<
     "dashboard" | "allCalls" | "agents"
   >("dashboard");
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-    // Close agent details if main sidebar is closed on mobile
-    if (window.innerWidth < 1024 && isSidebarOpen) {
-      setSelectedAgent(null);
-    }
-  };
-
   const handleSelectAgent = (agent: AgentData) => {
     setSelectedAgent(agent);
-    // Optionally open the main sidebar if closed on mobile
-    if (!isSidebarOpen && window.innerWidth < 1024) {
-      setIsSidebarOpen(true);
-    }
   };
 
   const handleCloseAgentDetail = () => {
@@ -149,16 +136,17 @@ export default function Home() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
-    // Adjust main layout: remove lg:flex-row-reverse
-    <main className="flex flex-col lg:flex-row min-h-screen bg-white">
-      {/* Navigation Sidebar (Fixed Left, Centered) */}
-      <NavigationSidebar currentView={currentView} onSetView={handleSetView} />
+    // Main layout adjustment: Add padding-top for the fixed TopBar
+    <main className="flex flex-col lg:flex-row min-h-screen bg-white ">
+      {/* Use TopBar instead of NavigationSidebar */}
+      <TopBar currentView={currentView} onSetView={handleSetView} />
 
-      {/* Main Content Wrapper - Takes up remaining space */}
-      <div className="flex flex-col flex-1 p-8 sm:p-12 overflow-y-auto pl-28 bg-[#1F2734]">
-        {/* Header */}
+      {/* Main Content Wrapper - Remove pl-28 (no vertical sidebar space needed) */}
+      <div className="flex flex-col flex-1 p-8 sm:p-12 overflow-y-auto bg-[#1F2734]">
+        {/* Header - Adjust or remove if title is now in TopBar or redundant */}
+        {/* Option 1: Keep header for context (adjust pl if needed) */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex pl-16 w-full items-center justify-center">
+          <div className="flex w-full items-center justify-center">
             {" "}
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
               {currentView === "dashboard"
@@ -168,33 +156,10 @@ export default function Home() {
                 : "Agents"}
             </h1>
           </div>
-
-          {/* Mobile toggle button remains */}
-          <button
-            onClick={toggleSidebar} // This toggle function might need adjustment if it was tied only to the old Sidebar
-            className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none lg:hidden"
-            aria-label="Open sidebar" // Consider renaming aria-label if toggle function changes
-          >
-            {/* SVG remains */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="h-6 w-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-              />
-            </svg>
-          </button>
         </div>
 
-        {/* Conditionally Render View Components */}
-        <div className="pl-16">
+        {/* Conditionally Render View Components - Remove pl-16 */}
+        <div className="">
           {currentView === "dashboard" ? (
             <DashboardView
               callsChartData={callsChartData}
@@ -211,7 +176,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Agent Detail Sidebar - Now directly inside main, should position itself */}
+      {/* Agent Detail Sidebar - Remains, should position itself relative to the viewport or main content area */}
       <AgentDetailSidebar
         agent={selectedAgent}
         agentStats={selectedAgentStats}
