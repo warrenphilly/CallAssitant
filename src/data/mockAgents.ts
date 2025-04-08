@@ -45,4 +45,13 @@ export const mockAgents: AgentData[] = [
     instructions:
       "Handle general questions about services. Direct specific queries to the relevant department (Support, Billing, Appointments). Be polite and professional.",
   },
+  {
+    id: "vapi_ai_agent",
+    name: "AI Business Assistant (Vapi)",
+    phoneNumber: "YOUR_VAPI_PHONE_NUMBER", // <-- Replace with your actual Vapi number
+    task: "Provides Business Information",
+    instructions:
+      "Answers caller questions based on the configured business details (hours, services, location, etc.).",
+    status: "Active", // You can set a status if needed
+  },
 ];

@@ -15,7 +15,7 @@ interface CallsPerDayChartProps {
 export default function CallsPerDayChart({ data }: CallsPerDayChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="bg-[#333B48] shadow-lg rounded-xl p-4 sm:p-6 h-80  flex flex-col">
+      <div className="bg-[#344743] shadow-lg rounded-xl p-4 sm:p-6 h-80  flex flex-col">
         <h3 className="text-lg font-semibold text-gray-700 mb-4 flex-shrink-0 text-white">
           Calls per Day
         </h3>
@@ -29,7 +29,7 @@ export default function CallsPerDayChart({ data }: CallsPerDayChartProps) {
   }
 
   return (
-    <div className="bg-[#333B48] shadow-lg rounded-xl p-4 sm:p-6 h-80  flex flex-col">
+    <div className="bg-[#344743] shadow-lg rounded-xl p-4 sm:p-6 h-80  flex flex-col">
       <h3 className="text-lg font-semibold text-gray-700 mb-4 flex-shrink-0 text-white">
         Calls per Day
       </h3>
@@ -67,7 +67,7 @@ export default function CallsPerDayChart({ data }: CallsPerDayChartProps) {
             <Recharts.Line
               type="monotone"
               dataKey="calls"
-              stroke="#8b5cf6"
+              stroke="#A0ECA8"
               strokeWidth={2}
               activeDot={{ r: 6, fill: "#8b5cf6" }}
               name="Number of Calls"

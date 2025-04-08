@@ -22,7 +22,7 @@ export default function NavigationSidebar({
 
   return (
     // Reverted to fixed positioning, 70vh height, vertical centering, rounding, shadow
-    <nav className="fixed left-4 top-1/2 -translate-y-1/2 z-40 w-20 h-[70vh]  bg-white text-white flex flex-col items-center justify-center py-6 space-y-6 rounded-xl shadow-lg">
+    <nav className="fixed  top-1/2 -translate-y-1/2 z-40 w-60 h-full  bg-[#344743] text-white flex flex-col items-center justify-start py-6 space-y-6 rl shadow-lg gap-4 p-4">
       {/* Added justify-center back */}
 
       {/* Optional: Logo placeholder */}
@@ -34,9 +34,9 @@ export default function NavigationSidebar({
           <button
             key={item.view}
             onClick={() => onSetView(item.view)}
-            className={`flex flex-col items-center p-2 rounded-lg w-16 h-16 justify-center transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+            className={`flex flex-col items-center p-2 rounded-lg w-full h-16 justify-center transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800 ${
               isActive
-                ? "bg-indigo-600 text-white shadow-inner"
+                ? "bg-[#4A5B58] rounded-full text-white shadow-inner"
                 : "text-gray-400 hover:bg-gray-700 hover:text-white"
             }`}
             title={item.label}

@@ -13,9 +13,9 @@ const StatCard = ({
   title: string;
   value: string | number;
 }) => (
-  <div className="bg-[#333B48] shadow rounded-xl p-4 text-center flex flex-col justify-center min-h-[137px] ">
+  <div className="bg-[#4A5B58] shadow rounded-xl p-4 text-center flex flex-col justify-center min-h-[137px] ">
     <dt className="text-sm font-medium text-white truncate mb-1">{title}</dt>
-    <dd className="text-2xl font-semibold text-[#8BAEE5]">{value}</dd>
+    <dd className="text-2xl font-semibold text-[#86E090]">{value}</dd>
   </div>
 );
 
@@ -27,7 +27,7 @@ export default function AnalyticsSummary({
 }: AnalyticsProps) {
   return (
     <div className="mb-8 h-full">
-      <dl className="grid grid-cols-2 gap-4 h-full">
+      <dl className="grid grid-cols-4 gap-4 h-full">
         <StatCard title="Total Calls" value={totalCalls} />
         <StatCard title="Avg. Call Duration" value={averageDuration} />
         <StatCard title="Total Call Time" value={totalDuration} />

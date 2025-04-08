@@ -1,14 +1,14 @@
 "use client"; // Required for state and event handlers
 
 import AgentDetailSidebar from "@/components/AgentDetailSidebar"; // Verify path
+import AgentsListView from "@/components/AgentsListView"; // Import the new view
 import AllCallsView from "@/components/AllCallsView"; // Import AllCallsView
 import DashboardView from "@/components/DashboardView"; // Import DashboardView
-import TopBar from "@/components/TopBar"; // Import the new TopBar
+import NavigationSidebar from "@/components/NavigationSidebar"; // Import NavigationSidebar instead of TopBar
 import { CallWithAgentDetails } from "@/components/RecentCallsTable"; // Keep type import needed for data processing
 import { AgentData, mockAgents } from "@/data/mockAgents"; // Import AgentData type
 import { mockCalls } from "@/data/mockCalls";
 import React, { useMemo, useState } from "react"; // Import useState, useMemo
-import AgentsListView from "@/components/AgentsListView"; // Import the new view
 
 // Define AgentStats here if not imported from a shared location
 interface AgentStats {
@@ -97,7 +97,7 @@ export default function Home() {
     const map = new Map<string, AgentData>();
     mockAgents.forEach((agent) => map.set(agent.id, agent));
     return map;
-  }, [mockAgents]);
+  }, []); // Removed mockAgents dependency as it's a static import
 
   // Add agent details and a mock review to each call
   const callsWithAgentDetails: CallWithAgentDetails[] = useMemo(() => {
@@ -120,10 +120,12 @@ export default function Home() {
           agentName: agentName,
           agentPhoneNumber: agentPhoneNumber,
           agentReview: mockReview,
+          // Assign chatMessages directly to transcript as structure is compatible
+          transcript: call.chatMessages,
         };
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [mockCalls, agentsMap]);
+  }, [agentsMap]); // Removed mockCalls dependency, kept agentsMap
 
   // Keep callsByDate calculation (unfiltered)
   const callsByDate = mockCalls.reduce((acc, call) => {
@@ -138,17 +140,17 @@ export default function Home() {
   return (
     // Main layout adjustment: Add padding-top for the fixed TopBar
     <main className="flex flex-col lg:flex-row min-h-screen bg-white ">
-      {/* Use TopBar instead of NavigationSidebar */}
-      <TopBar currentView={currentView} onSetView={handleSetView} />
+      {/* Use NavigationSidebar instead of TopBar */}
+      <NavigationSidebar currentView={currentView} onSetView={handleSetView} />
 
-      {/* Main Content Wrapper - Remove pl-28 (no vertical sidebar space needed) */}
-      <div className="flex flex-col flex-1 p-8 sm:p-12 overflow-y-auto bg-[#1F2734]">
+      {/* Main Content Wrapper - Add pl-28 for lg screens to account for sidebar */}
+      <div className="flex flex-col flex-1 p-8 sm:p-12 lg:pl-72 overflow-y-auto bg-[#1E332F]">
         {/* Header - Adjust or remove if title is now in TopBar or redundant */}
         {/* Option 1: Keep header for context (adjust pl if needed) */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex w-full items-center justify-center">
+          <div className="flex w-full items-center justify-start">
             {" "}
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            <h1 className="text-2xl sm:text-3xl  text-gray-300">
               {currentView === "dashboard"
                 ? "Dashboard"
                 : currentView === "allCalls"

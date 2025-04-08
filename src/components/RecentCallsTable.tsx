@@ -10,6 +10,8 @@ export interface CallWithAgentDetails extends CallData {
   agentName: string;
   agentPhoneNumber: string;
   agentReview: string;
+  // Add transcript field
+  transcript: Array<{ speaker: "Agent" | "Caller"; text: string }>;
 }
 
 interface RecentCallsProps {
@@ -36,7 +38,7 @@ export default function RecentCallsList({ calls }: RecentCallsProps) {
 
   return (
     // Container for vertical list of cards
-    <div className="w-full flex-grow overflow-y-auto pr-1 space-y-3">
+    <div className="w-full flex-grow pr-1 space-y-3 h-full">
       {displayedCalls.length === 0 ? (
         <p className="text-center text-gray-500 py-6 w-full">
           No recent calls to display.
@@ -49,33 +51,32 @@ export default function RecentCallsList({ calls }: RecentCallsProps) {
               key={call.id}
               // Add onClick handler if navigation/modal opening is desired
               // onClick={() => alert(`Show details for ${call.id}`)}
-              className="flex items-start p-4 border-2 border-[#333B48] rounded-lg bg-none hover:bg-[#333B48]  transition-colors duration-150 cursor-default shadow space-x-3"
+              className="flex items-start p-4 bg-[#4A5B58] rounded-lg bg-none hover:bg-[#344743]  transition-colors duration-150 cursor-default shadow space-x-3"
               title={`Call from ${call.callerNumber} handled by ${call.agentName}`}
             >
               {/* Icon */}
               <div className="flex-shrink-0 mt-1">
-                <FaUserCircle size={28} color="#6b7280" />
+                <FaUserCircle size={28} color="#86E090" />
               </div>
 
               {/* Details Column */}
               <div className="flex-grow min-w-0">
                 <p
-                  className="text-sm text-[#8BAEE5] font-semibold truncate"
+                  className="text-sm text-[#A0ECA8] font-semibold truncate"
                   title={call.agentName}
                 >
                   Caller: {call.callerNumber}
-                 
                 </p>
                 <p
-                  className="text-xs text-gray-500 truncate"
+                  className="text-xs text-gray-200 truncate"
                   title={call.callerNumber}
                 >
-                   Agent: {call.agentName}
+                  Agent: {call.agentName}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-200 mt-1">
                   Duration: {formatDurationMMSS(call.durationSeconds)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-200 mt-1">
                   Date: {call.date} {/* Added Date */}
                 </p>
               </div>
