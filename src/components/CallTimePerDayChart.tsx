@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
   Legend,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -17,9 +17,9 @@ const formatTooltipDuration = (totalSeconds: number): string => {
   if (totalSeconds === 0) return "0s";
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+  const seconds = Math.round(totalSeconds % 60);
 
-  let parts: string[] = [];
+  const parts: string[] = [];
   if (hours > 0) parts.push(`${hours}h`);
   if (minutes > 0) parts.push(`${minutes}m`);
   if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
@@ -36,6 +36,13 @@ interface CallTimePerDayChartProps {
   data: DurationChartDataPoint[];
 }
 
+// Define a type for the tooltip props for better type safety
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: DurationChartDataPoint; value: number }>;
+  label?: string;
+}
+
 export default function CallTimePerDayChart({
   data,
 }: CallTimePerDayChartProps) {
@@ -47,8 +54,8 @@ export default function CallTimePerDayChart({
     );
   }
 
-  // Custom tooltip formatter
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  // Custom tooltip formatter with defined types
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white border border-gray-200 shadow-lg rounded-md p-2 text-xs">
@@ -68,7 +75,7 @@ export default function CallTimePerDayChart({
         Total Call Time per Day
       </h3>
       <ResponsiveContainer width="100%" height="85%">
-        <BarChart
+        <LineChart
           data={data}
           margin={{ top: 5, right: 20, left: 0, bottom: 20 }}
         >
@@ -91,12 +98,16 @@ export default function CallTimePerDayChart({
               color: "#374151",
             }}
           />
-          <Bar
+          <Line
+            type="monotone"
             dataKey="totalDurationSeconds"
-            fill="#4f46e5"
+            stroke="#4f46e5"
+            strokeWidth={2}
+            dot={{ r: 3 }}
+            activeDot={{ r: 5 }}
             name="Total Duration"
           />
-        </BarChart>
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );

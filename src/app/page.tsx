@@ -99,43 +99,31 @@ export default function Home() {
     return map;
   }, []); // Removed mockAgents dependency as it's a static import
 
-  // Add agent details and a mock review to each call
-  const callsWithAgentDetails: CallWithAgentDetails[] = useMemo(() => {
-    return mockCalls
-      .map((call) => {
-        const agent = agentsMap.get(call.agentId);
-        // Add explicit check although ?? handles it
-        const agentName = agent ? agent.name : "Unknown Agent";
-        const agentPhoneNumber = agent ? agent.phoneNumber : "N/A";
-        const mockReview = agent
-          ? agent.id.charCodeAt(0) % 3 === 0
-            ? "Good"
-            : agent.id.charCodeAt(0) % 3 === 1
-            ? "Excellent"
-            : "Needs Improvement"
-          : "N/A";
+  // Combine mock calls with mock agents
+  const callsWithAgentDetails: CallWithAgentDetails[] = mockCalls.map(
+    (call) => {
+      const agent = agentsMap.get(call.agentId);
+      // Add explicit check although ?? handles it
+      const agentName = agent ? agent.name : "Unknown Agent";
+      const agentPhoneNumber = agent ? agent.phoneNumber : "N/A";
+      const mockReview = agent
+        ? agent.id.charCodeAt(0) % 3 === 0
+          ? "Good"
+          : agent.id.charCodeAt(0) % 3 === 1
+          ? "Excellent"
+          : "Needs Improvement"
+        : "N/A";
 
-        return {
-          ...call,
-          agentName: agentName,
-          agentPhoneNumber: agentPhoneNumber,
-          agentReview: mockReview,
-          // Assign chatMessages directly to transcript as structure is compatible
-          transcript: call.chatMessages,
-        };
-      })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [agentsMap]); // Removed mockCalls dependency, kept agentsMap
-
-  // Keep callsByDate calculation (unfiltered)
-  const callsByDate = mockCalls.reduce((acc, call) => {
-    const date = call.date;
-    acc[date] = (acc[date] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-  const callsChartData = Object.entries(callsByDate)
-    .map(([date, calls]) => ({ date, calls }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      return {
+        ...call,
+        agentName: agentName,
+        agentPhoneNumber: agentPhoneNumber,
+        agentReview: mockReview,
+        // Assign chatMessages directly to transcript as structure is compatible
+        transcript: call.chatMessages,
+      };
+    }
+  );
 
   return (
     // Main layout adjustment: Add padding-top for the fixed TopBar
@@ -163,10 +151,7 @@ export default function Home() {
         {/* Conditionally Render View Components - Remove pl-16 */}
         <div className="">
           {currentView === "dashboard" ? (
-            <DashboardView
-              callsChartData={callsChartData}
-              allCallsWithAgentDetails={callsWithAgentDetails}
-            />
+            <DashboardView allCallsWithAgentDetails={callsWithAgentDetails} />
           ) : currentView === "allCalls" ? (
             <AllCallsView allCalls={callsWithAgentDetails} />
           ) : (

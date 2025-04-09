@@ -11,15 +11,6 @@ import React, { useCallback, useMemo, useState } from "react";
 import { formatDurationMMSS } from "@/utils/formatters";
 
 interface DashboardViewProps {
-  // Analytics Data (Original totals might still be needed, or pass all calls data)
-  // totalCalls: number;
-  // averageDuration: string;
-  // totalDuration: string;
-  // overallSatisfaction: string;
-
-  // Chart Data (unfiltered)
-  callsChartData: { date: string; calls: number }[];
-
   // Pass all calls data for filtering analytics and recent calls within this component
   allCallsWithAgentDetails: CallWithAgentDetails[];
 }
@@ -83,13 +74,42 @@ const formatDateForDisplay = (
   return dateString; // Fallback
 };
 
+// Helper function to calculate the 7-level overall satisfaction string
+const getOverallSatisfactionString = (
+  calls: CallWithAgentDetails[]
+): string => {
+  const totalCalls = calls.length;
+  if (totalCalls === 0) return "N/A";
+
+  const scoreMap: Record<(typeof calls)[0]["satisfaction"], number> = {
+    "Very Positive": 2,
+    Positive: 1,
+    Neutral: 0,
+    Negative: -1,
+    "Very Negative": -2,
+  };
+
+  const totalScore = calls.reduce(
+    (sum, call) => sum + (scoreMap[call.satisfaction] ?? 0),
+    0
+  );
+  const averageScore = totalScore / totalCalls;
+
+  if (averageScore > 1.5) return "Very Positive";
+  if (averageScore > 1.0) return "Mostly Positive";
+  if (averageScore > 0.5) return "Positive";
+  if (averageScore >= -0.5) return "Neutral"; // Includes 0
+  if (averageScore >= -1.0) return "Negative";
+  if (averageScore >= -1.5) return "Mostly Negative";
+  return "Very Negative";
+};
+
 // Remove unused helpers for input element
 // const getFilterInputType = (...) => { ... };
 // const formatValueForInput = (...) => { ... };
 // const parseInputToDateString = (...) => { ... };
 
 export default function DashboardView({
-  callsChartData,
   allCallsWithAgentDetails,
 }: DashboardViewProps) {
   // Update filterMode state type
@@ -183,46 +203,6 @@ export default function DashboardView({
     });
   }, [filterMode, selectedDateString, allCallsWithAgentDetails]);
 
-  // Filter chart data based on selected date/period
-  const filteredChartData = useMemo(() => {
-    if (filterMode === "all") return callsChartData; // Return original aggregated data if 'All'
-
-    // If filtering by Year, Month or Week, re-aggregate the *filtered calls*
-    if (
-      filterMode === "year" ||
-      filterMode === "month" ||
-      filterMode === "week"
-    ) {
-      const dailyCounts = filteredCalls.reduce((acc, call) => {
-        acc[call.date] = (acc[call.date] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      // Ensure the chart always shows dates within the selected range, even if they have 0 calls
-      const results = Object.entries(dailyCounts)
-        .map(([date, calls]) => ({ date, calls }))
-        .sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-        );
-
-      // For week/month/year, ensure all relevant dates within the filtered range are present for the chart.
-      // This part could be expanded to fill gaps if needed, but for now just returns filtered dates.
-      return results;
-    }
-
-    // If filtering by Day, find the specific day's pre-aggregated data (if available)
-    // Or just return the count from filteredCalls for that day
-    if (filterMode === "day") {
-      // Use filteredCalls which already contains only calls for the selected day
-      const count = filteredCalls.length;
-      return count > 0 ? [{ date: selectedDateString, calls: count }] : [];
-      // Original logic using pre-aggregated data:
-      // const dayData = callsChartData.find((d) => d.date === selectedDateString);
-      // return dayData ? [dayData] : [];
-    }
-
-    return []; // Should not reach here
-  }, [filterMode, selectedDateString, callsChartData, filteredCalls]);
-
   // Calculate analytics based on filtered calls
   const filteredAnalytics = useMemo(() => {
     const callsToAnalyze = filteredCalls;
@@ -244,10 +224,13 @@ export default function DashboardView({
     const negativePercent =
       totalCalls > 0 ? Math.round((negativeCalls / totalCalls) * 100) : 0;
 
+    const overallSatisfaction = getOverallSatisfactionString(callsToAnalyze);
+
     return {
       totalCalls,
-      averageDuration: averageDurationSeconds,
-      totalDuration: totalDurationSeconds,
+      averageDuration: formatDurationMMSS(averageDurationSeconds),
+      totalDuration: formatTotalDuration(totalDurationSeconds),
+      overallSatisfaction,
       positivePercent,
       negativePercent,
     };
@@ -256,9 +239,7 @@ export default function DashboardView({
   // Helper for button styling
   const getButtonClass = (mode: typeof filterMode) => {
     return `px-4 hover:bg-[#4A5B58] bg-[#344743] py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
-      filterMode === mode
-        ? " text-[#65B06B] "
-        : " text-white "
+      filterMode === mode ? " text-[#65B06B] " : " text-white "
     }`;
   };
 
@@ -285,7 +266,6 @@ export default function DashboardView({
           </button>
           <button
             className={`${getButtonClass("month")}   `}
-
             onClick={() => setFilterMode("month")}
           >
             Month
@@ -368,18 +348,18 @@ export default function DashboardView({
         <div className="mb-0 md:mb-8 h-full flex flex-col">
           <AnalyticsSummary
             totalCalls={filteredAnalytics.totalCalls}
-            averageDuration={formatDurationMMSS(
-              filteredAnalytics.averageDuration
-            )}
-            totalDuration={formatTotalDuration(filteredAnalytics.totalDuration)}
-            overallSatisfaction={`${filteredAnalytics.positivePercent}% Pos / ${filteredAnalytics.negativePercent}% Neg`}
+            averageDuration={filteredAnalytics.averageDuration}
+            totalDuration={filteredAnalytics.totalDuration}
+            overallSatisfaction={filteredAnalytics.overallSatisfaction}
           />
         </div>
 
         {/* Charts Column - Pass filtered chart data */}
-       
-          <CallsPerDayChart data={filteredChartData} />
-        
+        <CallsPerDayChart
+          calls={filteredCalls}
+          mode={filterMode}
+          selectedDateString={selectedDateString}
+        />
       </div>
 
       {/* Recent Calls Section - Pass filtered calls */}
